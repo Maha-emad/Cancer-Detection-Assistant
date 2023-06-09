@@ -15,6 +15,7 @@ from roboflow import Roboflow
 from PIL import ImageTk, Image, ImageDraw, ImageFont
 import torch 
 import time
+import re
 
 from pathlib import Path
 
@@ -57,33 +58,22 @@ image_1 = canvas.create_image(
 )
 
 
-id_var = IntVar() 
-id_var.set("")
-entry_image_1 = PhotoImage(
-    file=relative_to_assets("entry_1.png"))
-entry_bg_1 = canvas.create_image(
-    709.0,
-    197.0,
-    image=entry_image_1
-)
-entry_1 = Entry(
+
+with open('login_data.json', 'r') as file:
+        data = json.load(file)
     
-    bd=0,
-    bg="#D9D9D9",
-    fg="#000716",
-    highlightthickness=0,
-    textvariable = id_var
-)
-entry_1.place(
-    x=555.0,
-    y=173.0,
-    width=308.0,
-    height=46.0
+    
+dr_id =  data['dr_id']
+
+message_label_1 = canvas.create_text(600.0,200.0 , anchor="w",
+    text="",
+    fill="#FFFFFF",
+    font=("Arial", 20,"bold"),
 )
 
 
 
-
+canvas.itemconfig(message_label_1, text=dr_id )
 
 
 old_pass_var = StringVar()
@@ -199,30 +189,53 @@ button_1.place(
     height=80.0
 )
 
+
+message_label_1 = canvas.create_text(
+    615.0,  
+    625.0,
+    anchor="w",
+    text="",
+    fill="#FFFFFF",
+    font=("Arial", 12,"bold"),
+)
+
+message_label_2 = canvas.create_text(
+    900.0,  
+    367.0,
+    anchor="w",
+    text="",
+    fill="#FFFFFF",
+    font=("Arial", 12,"bold"),
+)
+
+
+
+
+        
+
 def home(): 
     script_path = r"home.py"
     subprocess.Popen(['python', script_path], creationflags=subprocess.CREATE_NEW_CONSOLE)
     window.destroy()
-def update_pass()  :  
+def update_pass()  : 
     
-    dr_id =  id_var.get()
+    
+    
     old_pass = old_pass_var.get()
     nw_pass = nw_pass_var.get()
     conf_pass= cnf_pass_var.get()
     
-   
+    canvas.itemconfig(message_label_1, text="")
+    canvas.itemconfig(message_label_2, text="")
     
     cred = credentials.Certificate('firebase\cancerdetection-8f9e0-firebase-adminsdk-iqsdf-23750ab0b9.json')
-    
     if not firebase_admin._apps:
         firebase_admin.initialize_app(cred)
-        
+    
+    # Access Firestore database
     db = firestore.client()
     
-    dr_id=id_var.get()
     old_pass= old_pass_var.get()
-    print(dr_id) 
-    print(old_pass)
     
     dr_ref = db.collection('doctors')
     
@@ -230,25 +243,38 @@ def update_pass()  :
     query = dr_ref.where('id', '==', dr_id ).where('password', '==' ,old_pass ).limit(1).get()
     
     documents = [doc for doc in query]
-
-    print(documents)
-     
+    
+    if not dr_id or not old_pass or not nw_pass or not conf_pass:
+        #lbl=Label(text = "Please complete the data", fg="white", font=("Arial", 12, "bold"),bg='red' ) 
+        canvas.itemconfig(message_label_1, text="Please complete the data")
+        #lbl.place(x = 615 , y = 620) 
+        return
     
     if len(query) != 0:
-    
-        # Check if new_pass matches conf_pass
-        if nw_pass == conf_pass:
-            # Update the password field of the matching document
-            document_ref = documents[0].reference
-            document_ref.update({'password': nw_pass})
-            lbl=Label(text = "Password updated", fg="white", font=("Arial", 12, "bold"),bg='red' , height =2, width =20 ) 
-            lbl.place(x = 615 , y = 620)
-        else:
-            lbl=Label(text = "New password and confirmed password not matched", fg="white", font=("Arial", 12, "bold"),bg='red' ) 
-            lbl.place(x = 900 , y = 367) 
+            
+        if len(nw_pass) < 6 or not re.search(r"\d", nw_pass) or not re.search(r"[a-zA-Z]", nw_pass):
+            #lbl=Label(text = "Password should be at least 6 characters long\n and contain a mix of letters and numbers", fg="white", font=                          ("Arial", 12, "bold"),bg='red' ) 
+            #lbl.place(x = 900 , y = 367)
+            canvas.itemconfig(message_label_2, text="Password should be at least 6 characters long\n and contain a mix of letters and numbers")
+            return
+        
+        else :
+            # Check if new_pass matches conf_pass
+            if nw_pass == conf_pass:
+                # Update the password field of the matching document
+                document_ref = documents[0].reference
+                document_ref.update({'password': nw_pass})
+                #lbl=Label(text = "Password updated", fg="white", font=("Arial", 12, "bold"),bg='red' , height =2, width =20 ) 
+                canvas.itemconfig(message_label_1, text="Password updated")
+                #lbl.place(x = 615 , y = 620)
+            else:
+                #lbl=Label(text = "New password and confirmed password not matched", fg="white", font=("Arial", 12, "bold"),bg='red' ) 
+                #lbl.place(x = 900 , y = 367) 
+                canvas.itemconfig(message_label_2, text="New password and confirmed password not matched")
     else:
-        lbl=Label(text = "No such doctor", fg="white", font=("Arial", 12, "bold"),bg='red' , height =2, width =20 ) 
-        lbl.place(x = 615 , y = 620)
+        #lbl=Label(text = "No such doctor", fg="white", font=("Arial", 12, "bold"),bg='red' , height =2, width =20 ) 
+        #lbl.place(x = 615 , y = 620)
+        canvas.itemconfig(message_label_1, text="No such doctor")
     
     
     

@@ -171,6 +171,31 @@ id_entry.place(
     height=47.0
 )
 
+message_label_1 = canvas.create_text(600,723.0 , anchor="w",
+    text="",
+    fill="#FFFFFF",
+    font=("Arial", 12,"bold"),
+)
+
+message_label_2 = canvas.create_text(
+    120, 561 , 
+    anchor="w",
+    text="",
+    fill="#FFFFFF",
+    font=("Arial", 12,"bold"),
+)
+
+message_label_3 = canvas.create_text(
+    800.0,
+    400.0,
+    anchor="w",
+    text="",
+    fill="white",
+    font=("Arial", 12,"bold"),
+)
+
+def show_delay() :  
+    canvas.itemconfig(message_label_3, text="Please wait for the examination process!" )
 
 def login() :   
     script_path = r"login.py"
@@ -185,14 +210,18 @@ def ex_opts():
     
     
 def browse_file():
+    
+        canvas.itemconfig(message_label_1, text="")
+        canvas.itemconfig(message_label_2, text="")
         
         pt_nm = pnm_var.get() 
         
         if  pt_nm=="" : 
-            lbl=Label(text="Enter patient data!" , fg="white", font=("Arial", 12, "bold"),bg='red' , height =2, width =20 ) 
-            lbl.place(x=600,y=723.0)
-    
-        else :    
+#             lbl=Label(text="Enter patient data!" , fg="white", font=("Arial", 12, "bold"),bg='red' , height =2, width =20 ) 
+#             lbl.place(x=600,y=723.0)
+            canvas.itemconfig(message_label_1, text="Enter patient data!")
+        else :  
+            show_delay()
             image_path =filedialog.askopenfilename()
             img =Image.open( image_path)
             predict_image(image_path ) 
@@ -256,10 +285,14 @@ def predict_image(image_path):
         label.image = rendered_image
         label.configure(image=rendered_image)
         label.pack()
+        canvas.itemconfig(message_label_3, text="")
     
     
 
 def gen_rep():
+    
+    canvas.itemconfig(message_label_1, text="")
+    canvas.itemconfig(message_label_2, text="")
     cred = credentials.Certificate('firebase\cancerdetection-8f9e0-firebase-adminsdk-iqsdf-23750ab0b9.json')
     if not firebase_admin._apps:
         firebase_admin.initialize_app(cred)
@@ -280,10 +313,11 @@ def gen_rep():
     else:
         no_p_lbl = Label(text="No such patient", fg="white", font=("Arial", 12, "bold"), bg='#3E4B66', height=2, width=20)
         no_p_lbl.place(x=120, y=561)
+        canvas.itemconfig(message_label_2, text="No such patient")
         print("no patient")
     
     firebase_admin.delete_app(firebase_admin.get_app())
-
+    
     
 
 

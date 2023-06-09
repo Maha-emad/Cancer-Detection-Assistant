@@ -8,6 +8,7 @@ from firebase_admin import credentials
 from firebase_admin import firestore
 import sys
 import subprocess
+import json
 
 
 
@@ -130,6 +131,12 @@ def login_and_open_file():
         firebase_admin.initialize_app(cred)
     
     db = firestore.client()
+    
+    data = {'dr_id':dr_id_var.get()}
+        
+            # Write the dictionary to the file in JSON format
+    with open('login_data.json', 'w') as file:
+            json.dump(data, file)
     
     # Retrieve document from 'doctores' collection
     doc_ref = db.collection('doctors').where('id', '==', dr_id_var.get()).where('password', '==', dr_pass_var.get()).limit(1).stream()

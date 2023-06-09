@@ -48,6 +48,10 @@ def populate_treeview():
 
 
 def delete_selected_row():
+    
+    canvas.itemconfig(message_label_1, text="")
+    canvas.itemconfig(message_label_2, text="")
+
     selected_item = tree.focus()
     if selected_item:
         values = tree.item(selected_item, "values")
@@ -78,16 +82,21 @@ def delete_selected_row():
 
             
 def save_data():
+    
+    
     entry1_value = entry_1.get()
     entry2_value = entry_2.get()
 
   
+    canvas.itemconfig(message_label_1, text="")
+    canvas.itemconfig(message_label_2, text="")
 
-    cred = credentials.Certificate(r'E:\College resources\GraduationProject\cancerdetection-8f9e0-firebase-adminsdk-iqsdf-00ab4ef02d.json')
+    cred = credentials.Certificate('firebase\cancerdetection-8f9e0-firebase-adminsdk-iqsdf-23750ab0b9.json')
+
     if not firebase_admin._apps:
-        firebase_admin.initialize_app(cred)
-
-    db = firestore.client()
+         firebase_admin.initialize_app(cred)
+    db = firestore.client() 
+    
 
     doctors_ref = db.collection('doctors')
     query = doctors_ref.where('username', '==', entry1_value).limit(1)
